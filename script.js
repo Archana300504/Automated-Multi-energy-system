@@ -4,13 +4,23 @@ function submitData() {
   let otp = Math.floor(1000 + Math.random() * 9000);
 
   if (!energy || !amount) {
-    alert("Fill all fields");
+    alert("Please fill all fields");
     return;
   }
 
-  fetch("YOUR_GOOGLE_SCRIPT_URL?energy=" + energy +
-        "&amount=" + amount +
-        "&otp=" + otp);
+  let url = "https://script.google.com/macros/s/AKfycbzTSF-Ha7EELjlytlS7MbiBqWaEktIBTM5zjw-OdyM-LgaCtZitcFZ6tBcxKiUctYc9/exec" +
+            "?energy=" + energy +
+            "&amount=" + amount +
+            "&otp=" + otp;
 
-  alert("Your OTP is: " + otp);
+  fetch(url)
+    .then(response => response.text())
+    .then(data => {
+      alert("OTP: " + otp);
+      console.log(data);
+    })
+    .catch(err => {
+      alert("Error sending data");
+      console.error(err);
+    });
 }
