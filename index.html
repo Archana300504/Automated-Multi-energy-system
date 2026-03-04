@@ -133,6 +133,24 @@ function resetInputs() {
   document.getElementById("amount").value = "";
   document.getElementById("quantity").value = "";
 }
+
+function calculateFromAmount() {
+  const energy = document.getElementById("energy").value;
+  const amount = document.getElementById("amount").value;
+  if (!energy || amount <= 0) return;
+
+  let qty = amount / prices[energy];
+  document.getElementById("quantity").value = qty.toFixed(2);
+}
+
+function calculateFromQuantity() {
+  const energy = document.getElementById("energy").value;
+  const qty = document.getElementById("quantity").value;
+  if (!energy || qty <= 0) return;
+
+  let amount = qty * prices[energy];
+  document.getElementById("amount").value = amount.toFixed(2);
+}
 function saveToFirebase(paymentId = "TEST_PAYMENT") {
   const data = {
     timestamp: new Date().toISOString(),
@@ -156,24 +174,6 @@ function saveToFirebase(paymentId = "TEST_PAYMENT") {
       console.error("❌ Firebase error:", error);
     });
 }
-function calculateFromAmount() {
-  const energy = document.getElementById("energy").value;
-  const amount = document.getElementById("amount").value;
-  if (!energy || amount <= 0) return;
-
-  let qty = amount / prices[energy];
-  document.getElementById("quantity").value = qty.toFixed(2);
-}
-
-function calculateFromQuantity() {
-  const energy = document.getElementById("energy").value;
-  const qty = document.getElementById("quantity").value;
-  if (!energy || qty <= 0) return;
-
-  let amount = qty * prices[energy];
-  document.getElementById("amount").value = amount.toFixed(2);
-}
-
 // 🔵 MERGED RAZORPAY PAYMENT
 function payNow() {
   const phone = document.getElementById("phone").value;
@@ -204,6 +204,7 @@ function payNow() {
       // ✅ Payment success
       generatedOTP = Math.floor(1000 + Math.random() * 9000).toString();
       paymentSuccess = true;
+      saveToFirebase(response.razorpay_payment_id);
        console.log("Payment ID:", response.razorpay_payment_id);
       console.log("Generated OTP:", generatedOTP);
 
@@ -214,7 +215,7 @@ function payNow() {
 
       status.textContent = "Payment successful. OTP generated.";
       status.className = "success";
-      saveToFirebase(response.razorpay_payment_id);}};
+      }};
       
 
       const data = {
@@ -285,4 +286,5 @@ function verifyOTP() {
 
 </body>
 </html>
+
 
