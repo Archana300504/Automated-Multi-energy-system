@@ -237,7 +237,7 @@ function payNow() {
 
       console.log("Payment ID:", response.razorpay_payment_id);
       console.log("OTP:", generatedOTP);
-
+      
       status.textContent = "Payment successful. OTP generated.";
       status.className = "success";
     }
@@ -286,5 +286,6 @@ function verifyOTP() {
 
 </body>
 </html>
+
 
 
