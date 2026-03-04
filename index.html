@@ -219,7 +219,15 @@ function verifyOTP() {
       paymentStatus: "SUCCESS",
       energyStatus: "ENABLED"
     };
-    function generateJSON() {
+    
+    // 👉 ESP32 trigger later
+  } else {
+    status.textContent = "Invalid OTP";
+    status.className = "error";
+  }
+  
+}
+function generateJSON() {
     const data = {
         timestamp: new Date().toISOString(),
         phone: document.getElementById("phone").value,
@@ -240,15 +248,10 @@ function verifyOTP() {
       headers: { "Content-Type": "application/json" }
     });
 
-    // 👉 ESP32 trigger later
-  } else {
-    status.textContent = "Invalid OTP";
-    status.className = "error";
-  }
-}
 </script>
 
 </body>
 </html>
+
 
 
