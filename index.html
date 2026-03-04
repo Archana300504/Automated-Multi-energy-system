@@ -94,25 +94,10 @@ button:hover {
 
   <p id="status"></p>
 </div>
-<!-- Firebase SDK -->
-<script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
-<script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
+
 <!-- Razorpay Checkout -->
 <script src="https://checkout.razorpay.com/v1/checkout.js"></script>
-<script>
-  const firebaseConfig = {
-    apiKey: "YOUR_API_KEY",
-    authDomain: "YOUR_PROJECT.firebaseapp.com",
-    databaseURL: "https://YOUR_PROJECT-default-rtdb.firebaseio.com",
-    projectId: "YOUR_PROJECT",
-    storageBucket: "YOUR_PROJECT.appspot.com",
-    messagingSenderId: "XXXX",
-    appId: "XXXX"
-  };
 
-  firebase.initializeApp(firebaseConfig);
-  const database = firebase.database();
-</script>
 <script>
 const SHEET_URL = "https://script.google.com/macros/s/AKfycbwsUhfdQF87GO5fqFKqlfIfdIK_oxJE263wrzSpNzZMXiTpSRyjywE1fNGKZMofW9-t/exec";
 const RAZORPAY_KEY = "rzp_test_SNEX3ItvxUvSHj"; // ✅ your working test key
@@ -251,12 +236,8 @@ function verifyOTP() {
     status.className = "error";
   }
 }
-  <script src="script.js"></script>
 </script>
 
 </body>
 </html>
-
-
-
 
