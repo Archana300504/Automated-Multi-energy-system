@@ -86,6 +86,7 @@ button:hover {
   <input type="number" id="quantity" oninput="calculateFromQuantity()">
 
   <button onclick="payNow()">Pay via UPI</button>
+  <button id="payNow()" class="pay-btn">Pay via UPI</button>
 
   <label>Enter OTP</label>
   <input type="text" id="otpInput">
@@ -99,6 +100,7 @@ button:hover {
 const SHEET_URL = "https://script.google.com/macros/s/AKfycbwsUhfdQF87GO5fqFKqlfIfdIK_oxJE263wrzSpNzZMXiTpSRyjywE1fNGKZMofW9-t/exec";
 let generatedOTP = "";
 let paymentSuccess = false;
+src="https://checkout.razorpay.com/v1/checkout.js">
 
 // Pricing
 const prices = {
@@ -169,6 +171,34 @@ function payNow() {
   status.textContent = "Payment successful. OTP generated.";
   status.className = "success";
 }
+  function openRazorpay() {
+
+  var options = {
+    "key": "rzp_test_XXXXXXXX",   // 🔴 Your TEST key
+    "amount": 5000,              // ₹50
+    "currency": "INR",
+    "name": "Your Project Name",
+    "description": "Test Payment",
+    "handler": function (response) {
+      alert("Payment Successful");
+
+      // ✅ OPTIONAL: call verify function
+      verifyPayment(response.razorpay_payment_id);
+    }
+  };
+
+  var rzp = new Razorpay(options);
+  rzp.open();
+}
+<button id="payNow()" onclick="openRazorpay()">Pay via UPI</button>
+// OPTIONAL VERIFY FUNCTION
+function verifyPayment(paymentId) {
+  console.log("Payment ID:", paymentId);
+  alert("Verify clicked: " + paymentId);
+}
+  function verifyNow() {
+  alert("Verification successful (TEST MODE)");
+}
 
 function verifyOTP() {
   const enteredOTP = document.getElementById("otpInput").value;
@@ -211,6 +241,7 @@ function verifyOTP() {
 
 </body>
 </html>
+
 
 
 
