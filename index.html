@@ -97,13 +97,29 @@ button:hover {
 
 <!-- Razorpay Checkout -->
 <script src="https://checkout.razorpay.com/v1/checkout.js"></script>
-
+<!-- Firebase SDKs -->
+<script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
+<script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
 <script>
-const SHEET_URL = "https://script.google.com/macros/s/AKfycbzpZ72MZNtgdPLThtvR3Psi8gfCLM765mKbWBjcvP8y8vJzzWhx15wHecRcWCt1WXgi/exec";
+// const SHEET_URL = "https://script.google.com/macros/s/AKfycbzpZ72MZNtgdPLThtvR3Psi8gfCLM765mKbWBjcvP8y8vJzzWhx15wHecRcWCt1WXgi/exec";
 const RAZORPAY_KEY = "rzp_test_SNEX3ItvxUvSHj"; // ✅ your working test key
 
 let generatedOTP = "";
 let paymentSuccess = false;
+
+/* 🔥 Firebase Initialization */
+const firebaseConfig = {
+  apiKey: "AIzaSyDjiZo_lbuG7M0ndiKIS2fWynWGH-aB4tA",
+  authDomain: "automated-multi-energy-s-210bd.firebaseapp.com",
+  databaseURL: "https://automated-multi-energy-s-210bd-default-rtdb.firebaseio.com",
+  projectId: "automated-multi-energy-s-210bd",
+  storageBucket: "automated-multi-energy-s-210bd.firebasestorage.app",
+  messagingSenderId: "995922510546",
+  appId: "1:995922510546:web:f296db21e84d693c59230b"
+};
+
+firebase.initializeApp(firebaseConfig);
+const database = firebase.database();
 
 // Pricing
 const prices = {
@@ -117,7 +133,29 @@ function resetInputs() {
   document.getElementById("amount").value = "";
   document.getElementById("quantity").value = "";
 }
+function saveToFirebase(paymentId = "TEST_PAYMENT") {
+  const data = {
+    timestamp: new Date().toISOString(),
+    phone: document.getElementById("phone").value,
+    energy: document.getElementById("energy").value,
+    amount: document.getElementById("amount").value,
+    quantity: document.getElementById("quantity").value,
+    otp: Math.floor(1000 + Math.random() * 9000),
+    transactionId: paymentId,
+    paymentStatus: "SUCCESS",
+    motorStatus: "OFF"
+  };
 
+  database.ref("smartEnergyBunk").set(data)
+    .then(() => {
+      console.log("✅ Data saved to Firebase");
+      alert("Payment successful. OTP generated!");
+      console.log("OTP:", data.otp);
+    })
+    .catch((error) => {
+      console.error("❌ Firebase error:", error);
+    });
+}
 function calculateFromAmount() {
   const energy = document.getElementById("energy").value;
   const amount = document.getElementById("amount").value;
@@ -164,8 +202,20 @@ function payNow() {
 
     handler: function (response) {
       // ✅ Payment success
-      paymentSuccess = true;
       generatedOTP = Math.floor(1000 + Math.random() * 9000).toString();
+      paymentSuccess = true;
+       console.log("Payment ID:", response.razorpay_payment_id);
+      console.log("Generated OTP:", generatedOTP);
+
+      // SHOW OTP (for testing/demo)
+      alert("Payment Successful!\nYour OTP is: " + generatedOTP);
+
+      document.getElementById("otpSection").classList.remove("hidden");
+
+      status.textContent = "Payment successful. OTP generated.";
+      status.className = "success";
+      saveToFirebase(response.razorpay_payment_id);}};
+      
 
       const data = {
         phone: phone,
@@ -235,3 +285,4 @@ function verifyOTP() {
 
 </body>
 </html>
+
