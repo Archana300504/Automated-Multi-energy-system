@@ -85,7 +85,7 @@ button:hover {
   <label id="qtyLabel">Liters / Minutes / %</label>
   <input type="number" id="quantity" oninput="calculateFromQuantity()">
 
-  <button onclick="payNow()">Pay via UPI</button>
+  <button onclick="payNow() onlick="generateJSON">Pay via UPI</button>
 
   <label>Enter OTP</label>
   <input type="text" id="otpInput">
@@ -219,7 +219,21 @@ function verifyOTP() {
       paymentStatus: "SUCCESS",
       energyStatus: "ENABLED"
     };
+    function generateJSON() {
+    const data = {
+        timestamp: new Date().toISOString(),
+        phone: document.getElementById("phone").value,
+        energy: document.getElementById("energy").value,
+        amount: document.getElementById("amount").value,
+        paymentStatus: document.getElementById("OTP").value,
+  };
 
+  // Show JSON on page
+  document.getElementById("output").textContent =
+    JSON.stringify(data, null, 2);
+
+  // JSON is now READY to send anywhere
+  console.log(data);
     fetch(SHEET_URL, {
       method: "POST",
       body: JSON.stringify(data),
@@ -236,4 +250,5 @@ function verifyOTP() {
 
 </body>
 </html>
+
 
