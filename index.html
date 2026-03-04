@@ -99,7 +99,7 @@ button:hover {
 <script src="https://checkout.razorpay.com/v1/checkout.js"></script>
 
 <script>
-const SHEET_URL = "https://script.google.com/macros/s/AKfycbwsUhfdQF87GO5fqFKqlfIfdIK_oxJE263wrzSpNzZMXiTpSRyjywE1fNGKZMofW9-t/exec";
+const SHEET_URL = "https://script.google.com/macros/s/AKfycbzpZ72MZNtgdPLThtvR3Psi8gfCLM765mKbWBjcvP8y8vJzzWhx15wHecRcWCt1WXgi/exec";
 const RAZORPAY_KEY = "rzp_test_SNEX3ItvxUvSHj"; // ✅ your working test key
 
 let generatedOTP = "";
@@ -164,14 +164,9 @@ function payNow() {
 
     handler: function (response) {
       // ✅ Payment success
-      generatedOTP = Math.floor(1000 + Math.random() * 9000).toString();
       paymentSuccess = true;
-      
-      console.log("Payment ID:", response.razorpay_payment_id);
-      console.log("Generated OTP:", generatedOTP);
+      generatedOTP = Math.floor(1000 + Math.random() * 9000).toString();
 
-      // SHOW OTP (for testing/demo)
-      alert("Payment Successful!\nYour OTP is: " + generatedOTP);
       const data = {
         phone: phone,
         energy: energy,
@@ -240,4 +235,3 @@ function verifyOTP() {
 
 </body>
 </html>
-
