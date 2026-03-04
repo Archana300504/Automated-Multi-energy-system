@@ -164,8 +164,9 @@ function payNow() {
 
     handler: function (response) {
       // ✅ Payment success
-      paymentSuccess = true;
       generatedOTP = Math.floor(1000 + Math.random() * 9000).toString();
+      paymentSuccess = true;
+      
 
       const data = {
         phone: phone,
@@ -235,3 +236,4 @@ function verifyOTP() {
 
 </body>
 </html>
+
