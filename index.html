@@ -1,180 +1,181 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <title>Smart Energy Bunk</title>
+<meta charset="UTF-8">
+<title>Smart Energy Bunk</title>
 
-  <!-- Internal CSS for simplicity -->
-  <style>
-    body {
-      font-family: Arial, Helvetica, sans-serif;
-      background: linear-gradient(135deg, #1e3c72, #2a5298);
-      min-height: 100vh;
-      margin: 0;
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      color: #333;
-    }
+<style>
+body {
+  font-family: Arial, sans-serif;
+  background: linear-gradient(135deg, #1e3c72, #2a5298);
+  min-height: 100vh;
+  margin: 0;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
 
-    .container {
-      background: #ffffff;
-      width: 360px;
-      padding: 25px;
-      border-radius: 12px;
-      box-shadow: 0 10px 30px rgba(0,0,0,0.2);
-    }
+.container {
+  background: white;
+  width: 380px;
+  padding: 25px;
+  border-radius: 12px;
+  box-shadow: 0 10px 30px rgba(0,0,0,0.25);
+}
 
-    h2 {
-      text-align: center;
-      margin-bottom: 20px;
-      color: #2a5298;
-    }
+h2 {
+  text-align: center;
+  color: #2a5298;
+}
 
-    .section-title {
-      font-weight: bold;
-      margin-bottom: 10px;
-    }
+label {
+  font-weight: bold;
+}
 
-    .options label {
-      display: block;
-      padding: 8px;
-      border: 1px solid #ddd;
-      border-radius: 6px;
-      margin-bottom: 8px;
-      cursor: pointer;
-      transition: background 0.3s, border 0.3s;
-    }
+input, select, button {
+  width: 100%;
+  padding: 10px;
+  margin-top: 8px;
+  margin-bottom: 15px;
+  border-radius: 6px;
+  border: 1px solid #ccc;
+}
 
-    .options input {
-      margin-right: 8px;
-    }
+button {
+  background: #2a5298;
+  color: white;
+  border: none;
+  cursor: pointer;
+}
 
-    .options label:hover {
-      background: #f0f6ff;
-      border-color: #2a5298;
-    }
+button:hover {
+  background: #1e3c72;
+}
 
-    input[type="number"],
-    input[type="text"] {
-      width: 100%;
-      padding: 10px;
-      margin-top: 5px;
-      margin-bottom: 15px;
-      border-radius: 6px;
-      border: 1px solid #ccc;
-      font-size: 14px;
-    }
+#status {
+  text-align: center;
+  font-weight: bold;
+}
 
-    button {
-      width: 100%;
-      padding: 12px;
-      background: #2a5298;
-      border: none;
-      border-radius: 6px;
-      color: white;
-      font-size: 16px;
-      cursor: pointer;
-      transition: background 0.3s;
-    }
-
-    button:hover {
-      background: #1e3c72;
-    }
-
-    #status {
-      margin-top: 15px;
-      text-align: center;
-      font-weight: bold;
-    }
-
-    .success {
-      color: green;
-    }
-
-    .error {
-      color: red;
-    }
-  </style>
+.success { color: green; }
+.error { color: red; }
+</style>
 </head>
 
 <body>
 
-  <div class="container">
-    <h2>Smart Energy Bunk</h2>
+<div class="container">
+  <h2>Smart Energy Bunk</h2>
 
-    <div class="section-title">Select Energy Type</div>
-    <div class="options">
-      <label>
-        <input type="radio" name="energy" value="Petrol"> Petrol
-      </label>
-      <label>
-        <input type="radio" name="energy" value="Diesel"> Diesel
-      </label>
-      <label>
-        <input type="radio" name="energy" value="Air"> Air Pump
-      </label>
-      <label>
-        <input type="radio" name="energy" value="Wireless"> Wireless Charging
-      </label>
-    </div>
+  <label>Phone Number</label>
+  <input type="text" id="phone" placeholder="Enter phone number">
 
-    <div class="section-title">Amount (₹)</div>
-    <input type="number" id="amount" placeholder="Enter amount">
+  <label>Energy Type</label>
+  <select id="energy" onchange="resetInputs()">
+    <option value="">Select</option>
+    <option value="petrol">Petrol</option>
+    <option value="diesel">Diesel</option>
+    <option value="air">Air Pump</option>
+    <option value="wireless">Wireless Charging</option>
+  </select>
 
-    
+  <label>Amount (₹)</label>
+  <input type="number" id="amount" oninput="calculateFromAmount()">
 
-    <button onclick="submitData()">Submit</button>
+  <label id="qtyLabel">Liters / Minutes / %</label>
+  <input type="number" id="quantity" oninput="calculateFromQuantity()">
 
-    <p id="status"></p>
-  </div>
+  <button onclick="payNow()">Pay via UPI</button>
 
-  <!-- JavaScript -->
-  <script>
-    function submitData() {
-      const energy = document.querySelector('input[name="energy"]:checked');
-      const amount = document.getElementById("amount").value;
-      
-      const status = document.getElementById("status");
+  <label>Enter OTP</label>
+  <input type="text" id="otpInput">
 
-      // Validation
-      if (!energy) {
-        status.textContent = "Please select an energy type.";
-        status.className = "error";
-        return;
-      }
+  <button onclick="verifyOTP()">Confirm & Start</button>
 
-      if (amount === "" || amount <= 0) {
-        status.textContent = "Please enter a valid amount.";
-        status.className = "error";
-        return;
-      }
+  <p id="status"></p>
+</div>
 
-      if (otp.length < 4) {
-        status.textContent = "Invalid OTP.";
-        status.className = "error";
-        return;
-      }
+<script>
+let generatedOTP = "";
+let paymentSuccess = false;
 
-      // Data object (ready for Firebase / Sheets / API)
-      const data = {
-        energy: energy.value,
-        amount: amount,
-        status: "PAYMENT_SUCCESS",
-        timestamp: new Date().toLocaleString()
-      };
+// Pricing
+const prices = {
+  petrol: 100,
+  diesel: 90,
+  air: 10,
+  wireless: 2 // ₹2 per 1% charge
+};
 
-      console.log("Submitted Data:", data);
+function resetInputs() {
+  document.getElementById("amount").value = "";
+  document.getElementById("quantity").value = "";
+}
 
-      // Success message
+function calculateFromAmount() {
+  const energy = document.getElementById("energy").value;
+  const amount = document.getElementById("amount").value;
+  if (!energy || amount <= 0) return;
 
-      // 🔗 HERE is where you:
-      // - send data to Firebase
-      // - update Google Sheets
-      // - trigger ESP32 logic
-    }
-  </script>
+  let qty = amount / prices[energy];
+  document.getElementById("quantity").value = qty.toFixed(2);
+}
+
+function calculateFromQuantity() {
+  const energy = document.getElementById("energy").value;
+  const qty = document.getElementById("quantity").value;
+  if (!energy || qty <= 0) return;
+
+  let amount = qty * prices[energy];
+  document.getElementById("amount").value = amount.toFixed(2);
+}
+
+function payNow() {
+  const phone = document.getElementById("phone").value;
+  const energy = document.getElementById("energy").value;
+  const amount = document.getElementById("amount").value;
+  const status = document.getElementById("status");
+
+  if (!phone || !energy || amount <= 0) {
+    status.textContent = "Fill all details correctly";
+    status.className = "error";
+    return;
+  }
+
+  // 🔴 REAL UPI PAYMENT GOES HERE (Razorpay / PhonePe)
+  // For demo → simulate success
+  paymentSuccess = true;
+
+  generatedOTP = Math.floor(1000 + Math.random() * 9000).toString();
+  console.log("OTP:", generatedOTP);
+
+  status.textContent = "Payment successful! OTP sent.";
+  status.className = "success";
+}
+
+function verifyOTP() {
+  const otp = document.getElementById("otpInput").value;
+  const status = document.getElementById("status");
+
+  if (!paymentSuccess) {
+    status.textContent = "Please complete payment first.";
+    status.className = "error";
+    return;
+  }
+
+  if (otp === generatedOTP) {
+    status.textContent = "OTP verified. Energy dispensing started.";
+    status.className = "success";
+
+    // 🔗 SEND COMMAND TO ESP32
+    // fetch("http://ESP32_IP/start?energy=petrol&qty=1.2")
+
+  } else {
+    status.textContent = "Invalid OTP.";
+    status.className = "error";
+  }
+}
+</script>
 
 </body>
 </html>
-
