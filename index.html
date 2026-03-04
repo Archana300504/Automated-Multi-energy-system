@@ -85,8 +85,7 @@ button:hover {
   <label id="qtyLabel">Liters / Minutes / %</label>
   <input type="number" id="quantity" oninput="calculateFromQuantity()">
 
-  <button onclick="payNow()">Pay via UPI</button>
-  <button id="payNow()" class="pay-btn">Pay via UPI</button>
+  <button onclick="payNow()">Pay via UPI / Card</button>
 
   <label>Enter OTP</label>
   <input type="text" id="otpInput">
@@ -96,20 +95,28 @@ button:hover {
   <p id="status"></p>
 </div>
 
+<!-- Razorpay Checkout -->
+<script src="https://checkout.razorpay.com/v1/checkout.js"></script>
+
 <script>
+// ================== CONFIG ==================
+const RAZORPAY_KEY = "rzp_test_SNEX3ItvxUvSHj
+"; // 🔴 REPLACE WITH YOUR TEST KEY
 const SHEET_URL = "https://script.google.com/macros/s/AKfycbwsUhfdQF87GO5fqFKqlfIfdIK_oxJE263wrzSpNzZMXiTpSRyjywE1fNGKZMofW9-t/exec";
+
+// ================== VARIABLES ==================
 let generatedOTP = "";
 let paymentSuccess = false;
-src="https://checkout.razorpay.com/v1/checkout.js">
 
 // Pricing
 const prices = {
   petrol: 100,
   diesel: 90,
   air: 10,
-  wireless: 2 // ₹2 per 1% charge
+  wireless: 2
 };
 
+// ================== FUNCTIONS ==================
 function resetInputs() {
   document.getElementById("amount").value = "";
   document.getElementById("quantity").value = "";
@@ -133,8 +140,9 @@ function calculateFromQuantity() {
   document.getElementById("amount").value = amount.toFixed(2);
 }
 
+// ================== PAYMENT ==================
 function payNow() {
- const phone = document.getElementById("phone").value;
+  const phone = document.getElementById("phone").value;
   const energy = document.getElementById("energy").value;
   const amount = document.getElementById("amount").value;
   const quantity = document.getElementById("quantity").value;
@@ -146,66 +154,52 @@ function payNow() {
     return;
   }
 
-  // Simulated payment success
-  paymentSuccess = true;
-  generatedOTP = Math.floor(1000 + Math.random() * 9000).toString();
-
-  const data = {
-    phone: phone,
-    energy: energy,
-    amount: amount,
-    quantity: quantity,
-    otp: generatedOTP,
-    paymentStatus: "SUCCESS",
-    energyStatus: "PENDING"
-  };
-
-  fetch(SHEET_URL, {
-    method: "POST",
-    body: JSON.stringify(data),
-    headers: { "Content-Type": "application/json" }
-  });
-
-  console.log("OTP:", generatedOTP);
-
-  status.textContent = "Payment successful. OTP generated.";
-  status.className = "success";
-}
-  function openRazorpay() {
-
   var options = {
-    "key": "rzp_test_XXXXXXXX",   // 🔴 Your TEST key
-    "amount": 5000,              // ₹50
-    "currency": "INR",
-    "name": "Your Project Name",
-    "description": "Test Payment",
-    "handler": function (response) {
-      alert("Payment Successful");
+    key: RAZORPAY_KEY,
+    amount: Math.round(amount * 100),
+    currency: "INR",
+    name: "Smart Energy Bunk",
+    description: energy + " payment (TEST MODE)",
 
-      // ✅ OPTIONAL: call verify function
-      verifyPayment(response.razorpay_payment_id);
+    handler: function (response) {
+      paymentSuccess = true;
+      generatedOTP = Math.floor(1000 + Math.random() * 9000).toString();
+
+      const data = {
+        phone,
+        energy,
+        amount,
+        quantity,
+        otp: generatedOTP,
+        paymentId: response.razorpay_payment_id,
+        paymentStatus: "SUCCESS",
+        energyStatus: "PENDING"
+      };
+
+      fetch(SHEET_URL, {
+        method: "POST",
+        body: JSON.stringify(data),
+        headers: { "Content-Type": "application/json" }
+      });
+
+      console.log("Payment ID:", response.razorpay_payment_id);
+      console.log("OTP:", generatedOTP);
+
+      status.textContent = "Payment successful. OTP generated.";
+      status.className = "success";
     }
   };
 
-  var rzp = new Razorpay(options);
-  rzp.open();
-}
-<button id="payNow()" onclick="openRazorpay()">Pay via UPI</button>
-// OPTIONAL VERIFY FUNCTION
-function verifyPayment(paymentId) {
-  console.log("Payment ID:", paymentId);
-  alert("Verify clicked: " + paymentId);
-}
-  function verifyNow() {
-  alert("Verification successful (TEST MODE)");
+  new Razorpay(options).open();
 }
 
+// ================== OTP VERIFY ==================
 function verifyOTP() {
   const enteredOTP = document.getElementById("otpInput").value;
   const status = document.getElementById("status");
 
   if (!paymentSuccess) {
-    status.textContent = "Please pay first";
+    status.textContent = "Please complete payment first";
     status.className = "error";
     return;
   }
@@ -230,8 +224,7 @@ function verifyOTP() {
       headers: { "Content-Type": "application/json" }
     });
 
-    // 👉 ESP32 trigger will be added here later
-
+    // 👉 ESP32 trigger can be added here later
   } else {
     status.textContent = "Invalid OTP";
     status.className = "error";
@@ -241,8 +234,3 @@ function verifyOTP() {
 
 </body>
 </html>
-
-
-
-
-
