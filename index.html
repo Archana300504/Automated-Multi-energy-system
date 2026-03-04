@@ -14,6 +14,7 @@ body {
   justify-content: center;
   align-items: center;
 }
+
 .container {
   background: white;
   width: 380px;
@@ -21,13 +22,16 @@ body {
   border-radius: 12px;
   box-shadow: 0 10px 30px rgba(0,0,0,0.25);
 }
+
 h2 {
   text-align: center;
   color: #2a5298;
 }
+
 label {
   font-weight: bold;
 }
+
 input, select, button {
   width: 100%;
   padding: 10px;
@@ -36,19 +40,23 @@ input, select, button {
   border-radius: 6px;
   border: 1px solid #ccc;
 }
+
 button {
   background: #2a5298;
   color: white;
   border: none;
   cursor: pointer;
 }
+
 button:hover {
   background: #1e3c72;
 }
+
 #status {
   text-align: center;
   font-weight: bold;
 }
+
 .success { color: green; }
 .error { color: red; }
 </style>
@@ -60,10 +68,10 @@ button:hover {
   <h2>Smart Energy Bunk</h2>
 
   <label>Phone Number</label>
-  <input type="text" id="phone">
+  <input type="text" id="phone" placeholder="Enter phone number">
 
   <label>Energy Type</label>
-  <select id="energy">
+  <select id="energy" onchange="resetInputs()">
     <option value="">Select</option>
     <option value="petrol">Petrol</option>
     <option value="diesel">Diesel</option>
@@ -72,12 +80,12 @@ button:hover {
   </select>
 
   <label>Amount (₹)</label>
-  <input type="number" id="amount">
+  <input type="number" id="amount" oninput="calculateFromAmount()">
 
-  <label>Quantity</label>
-  <input type="number" id="quantity">
+  <label id="qtyLabel">Liters / Minutes / %</label>
+  <input type="number" id="quantity" oninput="calculateFromQuantity()">
 
-  <button onclick="payNow()">Pay & Generate OTP</button>
+  <button onclick="payNow()">Pay via UPI</button>
 
   <label>Enter OTP</label>
   <input type="text" id="otpInput">
@@ -87,29 +95,48 @@ button:hover {
   <p id="status"></p>
 </div>
 
-<!-- Firebase SDK -->
-<script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
-<script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
+<!-- Razorpay Checkout -->
+<script src="https://checkout.razorpay.com/v1/checkout.js"></script>
 
 <script>
-// 🔥 Firebase Initialization
-const firebaseConfig = {
-  apiKey: "AIzaSyDjiZo_lbuG7M0ndiKIS2fWynWGH-aB4tA",
-  authDomain: "automated-multi-energy-s-210bd.firebaseapp.com",
-  databaseURL: "https://automated-multi-energy-s-210bd-default-rtdb.firebaseio.com",
-  projectId: "automated-multi-energy-s-210bd",
-  storageBucket: "automated-multi-energy-s-210bd.firebasestorage.app",
-  messagingSenderId: "995922510546",
-  appId: "1:995922510546:web:f296db21e84d693c59230b"
-};
-
-firebase.initializeApp(firebaseConfig);
-const database = firebase.database();
+const SHEET_URL = "https://script.google.com/macros/s/AKfycbzpZ72MZNtgdPLThtvR3Psi8gfCLM765mKbWBjcvP8y8vJzzWhx15wHecRcWCt1WXgi/exec";
+const RAZORPAY_KEY = "rzp_test_SNEX3ItvxUvSHj"; // ✅ your working test key
 
 let generatedOTP = "";
-let currentTxnId = "";
+let paymentSuccess = false;
 
-// 🔹 PAYMENT + OTP GENERATION
+// Pricing
+const prices = {
+  petrol: 100,
+  diesel: 90,
+  air: 10,
+  wireless: 2
+};
+
+function resetInputs() {
+  document.getElementById("amount").value = "";
+  document.getElementById("quantity").value = "";
+}
+
+function calculateFromAmount() {
+  const energy = document.getElementById("energy").value;
+  const amount = document.getElementById("amount").value;
+  if (!energy || amount <= 0) return;
+
+  let qty = amount / prices[energy];
+  document.getElementById("quantity").value = qty.toFixed(2);
+}
+
+function calculateFromQuantity() {
+  const energy = document.getElementById("energy").value;
+  const qty = document.getElementById("quantity").value;
+  if (!energy || qty <= 0) return;
+
+  let amount = qty * prices[energy];
+  document.getElementById("amount").value = amount.toFixed(2);
+}
+
+// 🔵 MERGED RAZORPAY PAYMENT
 function payNow() {
   const phone = document.getElementById("phone").value;
   const energy = document.getElementById("energy").value;
@@ -117,49 +144,92 @@ function payNow() {
   const quantity = document.getElementById("quantity").value;
   const status = document.getElementById("status");
 
-  if (!phone || !energy || !amount || !quantity) {
+  if (!phone || !energy || amount <= 0) {
     status.textContent = "Fill all details";
     status.className = "error";
     return;
   }
 
-  generatedOTP = Math.floor(1000 + Math.random() * 9000).toString();
-  currentTxnId = "TXN_" + Date.now();
+  var options = {
+    key: RAZORPAY_KEY,
+    amount: Math.round(amount * 100),
+    currency: "INR",
+    name: "Smart Energy Bunk",
+    description: "Test Payment",
 
-  database.ref("transactions/" + currentTxnId).set({
-    phone: phone,
-    energy: energy,
-    amount: amount,
-    quantity: quantity,
-    otp: generatedOTP,
-    paymentStatus: "SUCCESS",
-    energyStatus: "PENDING",
-    timestamp: new Date().toISOString()
-  });
+    method: {
+      upi: true,
+      card: true
+    },
 
-  status.textContent = "Payment successful. OTP generated.";
-  status.className = "success";
+    handler: function (response) {
+      // ✅ Payment success
+      paymentSuccess = true;
+      generatedOTP = Math.floor(1000 + Math.random() * 9000).toString();
 
-  // For demo purpose only
-  alert("OTP: " + generatedOTP);
+      const data = {
+        phone: phone,
+        energy: energy,
+        amount: amount,
+        quantity: quantity,
+        otp: generatedOTP,
+        paymentId: response.razorpay_payment_id,
+        paymentStatus: "SUCCESS",
+        energyStatus: "PENDING"
+      };
+
+      fetch(SHEET_URL, {
+        method: "POST",
+        body: JSON.stringify(data),
+        headers: { "Content-Type": "application/json" }
+      });
+
+      console.log("Payment ID:", response.razorpay_payment_id);
+      console.log("OTP:", generatedOTP);
+
+      status.textContent = "Payment successful. OTP generated.";
+      status.className = "success";
+    }
+  };
+
+  new Razorpay(options).open();
 }
 
-// 🔹 OTP VERIFICATION
 function verifyOTP() {
   const enteredOTP = document.getElementById("otpInput").value;
   const status = document.getElementById("status");
 
-  if (enteredOTP !== generatedOTP) {
-    status.textContent = "Invalid OTP";
+  if (!paymentSuccess) {
+    status.textContent = "Please pay first";
     status.className = "error";
     return;
   }
 
-  database.ref("transactions/" + currentTxnId + "/energyStatus")
-    .set("ENABLED");
+  if (enteredOTP === generatedOTP) {
+    status.textContent = "OTP verified. Energy enabled.";
+    status.className = "success";
 
-  status.textContent = "OTP verified. Energy enabled.";
-  status.className = "success";
+    const data = {
+      phone: document.getElementById("phone").value,
+      energy: document.getElementById("energy").value,
+      amount: document.getElementById("amount").value,
+      quantity: document.getElementById("quantity").value,
+      otp: enteredOTP,
+      paymentStatus: "SUCCESS",
+      energyStatus: "ENABLED"
+    };
+
+    fetch(SHEET_URL, {
+      method: "POST",
+      body: JSON.stringify(data),
+      headers: { "Content-Type": "application/json" }
+    });
+
+    // 👉 ESP32 trigger later
+  } else {
+    status.textContent = "Invalid OTP";
+    status.className = "error";
+  }
 }
 </script>
 
